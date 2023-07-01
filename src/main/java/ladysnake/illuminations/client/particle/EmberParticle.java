@@ -145,7 +145,7 @@ public class EmberParticle extends SpriteBillboardParticle {
         double groundLevel = 0;
         for (int i = 0; i < 20; i++) {
             BlockState checkedBlock = this.world.getBlockState(new BlockPos((int) this.x, (int) (this.y - i), (int) this.z));
-            if (!checkedBlock.getBlock().canMobSpawnInside()) {
+            if (!checkedBlock.getBlock().canMobSpawnInside(checkedBlock)) {
                 groundLevel = this.y - i;
             }
             if (groundLevel != 0) break;

@@ -3,6 +3,7 @@ package ladysnake.illuminations.client.particle;
 import ladysnake.illuminations.client.config.Config;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VertexConsumer;
@@ -151,14 +152,8 @@ public class GlowwormParticle extends SpriteBillboardParticle {
         double length = targetVector.length();
         targetVector = targetVector.multiply(0.1 / length);
 
-
-        if (!this.world.getBlockState(new BlockPos((int) this.x, (int) (this.y - 0.1), (int) this.z)).getBlock().canMobSpawnInside()) {
-            velocityX = (0.9) * velocityX + (0.1) * targetVector.x;
-            velocityZ = (0.9) * velocityZ + (0.1) * targetVector.z;
-        } else {
-            velocityX = (0.9) * velocityX + (0.1) * targetVector.x;
-            velocityZ = (0.9) * velocityZ + (0.1) * targetVector.z;
-        }
+        velocityX = (0.9) * velocityX + (0.1) * targetVector.x;
+        velocityZ = (0.9) * velocityZ + (0.1) * targetVector.z;
 
         if (!new BlockPos((int) x, (int) y, (int) z).equals(this.getTargetPosition())) {
             this.move(velocityX, velocityY, velocityZ);
