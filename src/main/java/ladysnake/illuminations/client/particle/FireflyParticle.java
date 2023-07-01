@@ -10,17 +10,24 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.*;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import net.minecraft.world.biome.Biome;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
+
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
 public class FireflyParticle extends SpriteBillboardParticle {
     protected static final float BLINK_STEP = 0.05f;
@@ -50,9 +57,9 @@ public class FireflyParticle extends SpriteBillboardParticle {
             c = Color.getHSBColor(random.nextFloat(), 1f, 1f);
         } else {
             // Get color for current biome
-            RegistryEntry<Biome> b = world.getBiome(new BlockPos(x, y, z));
-            Identifier biome = world.getRegistryManager().get(Registry.BIOME_KEY).getId(b.value());
-            int rgb = Config.getBiomeSettings(biome).fireflyColor();
+            RegistryEntry<Biome> biome = world.getBiome(new BlockPos((int) x, (int) y, (int) z));
+            Identifier biome_id = world.getRegistryManager().get(RegistryKeys.BIOME).getId(biome.value());
+            int rgb = Config.getBiomeSettings(biome_id).fireflyColor();
             float[] hsb = Color.RGBtoHSB(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, null);
             // Shift hue by random ±30 deg angle
             hsb[0] += (random.nextFloat() - 0.5f) * 30 / 360f;
@@ -84,24 +91,24 @@ public class FireflyParticle extends SpriteBillboardParticle {
         float f = (float) (MathHelper.lerp(tickDelta, this.prevPosX, this.x) - vec3d.getX());
         float g = (float) (MathHelper.lerp(tickDelta, this.prevPosY, this.y) - vec3d.getY());
         float h = (float) (MathHelper.lerp(tickDelta, this.prevPosZ, this.z) - vec3d.getZ());
-        Quaternion quaternion2;
+        Quaternionf quaternion2;
         if (this.angle == 0.0F) {
             quaternion2 = camera.getRotation();
         } else {
-            quaternion2 = new Quaternion(camera.getRotation());
+            quaternion2 = new Quaternionf(camera.getRotation());
             float i = MathHelper.lerp(tickDelta, this.prevAngle, this.angle);
-            quaternion2.hamiltonProduct(Vec3f.POSITIVE_Z.getRadialQuaternion(i));
+            quaternion2.mul(new Quaternionf(0, 0, sin(i / 2.0F), cos(i / 2.0F)));
         }
 
-        Vec3f Vec3f = new Vec3f(-1.0F, -1.0F, 0.0F);
+        Vector3f Vec3f = new Vector3f(-1.0F, -1.0F, 0.0F);
         Vec3f.rotate(quaternion2);
-        Vec3f[] Vec3fs = new Vec3f[]{new Vec3f(-1.0F, -1.0F, 0.0F), new Vec3f(-1.0F, 1.0F, 0.0F), new Vec3f(1.0F, 1.0F, 0.0F), new Vec3f(1.0F, -1.0F, 0.0F)};
+        Vector3f[] Vec3fs = new Vector3f[]{new Vector3f(-1.0F, -1.0F, 0.0F), new Vector3f(-1.0F, 1.0F, 0.0F), new Vector3f(1.0F, 1.0F, 0.0F), new Vector3f(1.0F, -1.0F, 0.0F)};
         float j = this.getSize(tickDelta);
 
         for (int k = 0; k < 4; ++k) {
-            Vec3f Vec3f2 = Vec3fs[k];
+            Vector3f Vec3f2 = Vec3fs[k];
             Vec3f2.rotate(quaternion2);
-            Vec3f2.scale(j);
+            Vec3f2.mul(j);
             Vec3f2.add(f, g, h);
         }
 
@@ -113,16 +120,16 @@ public class FireflyParticle extends SpriteBillboardParticle {
         float a = Math.min(1f, Math.max(0f, this.alpha));
 
         // colored layer
-        vertexConsumer.vertex(Vec3fs[0].getX(), Vec3fs[0].getY(), Vec3fs[0].getZ()).texture(maxU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[1].getX(), Vec3fs[1].getY(), Vec3fs[1].getZ()).texture(maxU, minV).color(this.red, this.green, this.blue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[2].getX(), Vec3fs[2].getY(), Vec3fs[2].getZ()).texture(minU, minV).color(this.red, this.green, this.blue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[3].getX(), Vec3fs[3].getY(), Vec3fs[3].getZ()).texture(minU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[0].x(), Vec3fs[0].y(), Vec3fs[0].z()).texture(maxU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[1].x(), Vec3fs[1].y(), Vec3fs[1].z()).texture(maxU, minV).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[2].x(), Vec3fs[2].y(), Vec3fs[2].z()).texture(minU, minV).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[3].x(), Vec3fs[3].y(), Vec3fs[3].z()).texture(minU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
 
         // white center
-        vertexConsumer.vertex(Vec3fs[0].getX(), Vec3fs[0].getY(), Vec3fs[0].getZ()).texture(maxU, maxV).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
-        vertexConsumer.vertex(Vec3fs[1].getX(), Vec3fs[1].getY(), Vec3fs[1].getZ()).texture(maxU, minV + (maxV - minV) / 2.0F).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
-        vertexConsumer.vertex(Vec3fs[2].getX(), Vec3fs[2].getY(), Vec3fs[2].getZ()).texture(minU, minV + (maxV - minV) / 2.0F).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
-        vertexConsumer.vertex(Vec3fs[3].getX(), Vec3fs[3].getY(), Vec3fs[3].getZ()).texture(minU, maxV).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
+        vertexConsumer.vertex(Vec3fs[0].x(), Vec3fs[0].y(), Vec3fs[0].z()).texture(maxU, maxV).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
+        vertexConsumer.vertex(Vec3fs[1].x(), Vec3fs[1].y(), Vec3fs[1].z()).texture(maxU, minV + (maxV - minV) / 2.0F).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
+        vertexConsumer.vertex(Vec3fs[2].x(), Vec3fs[2].y(), Vec3fs[2].z()).texture(minU, minV + (maxV - minV) / 2.0F).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
+        vertexConsumer.vertex(Vec3fs[3].x(), Vec3fs[3].y(), Vec3fs[3].z()).texture(minU, maxV).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
     }
 
     public void tick() {
@@ -160,7 +167,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
         targetVector = targetVector.multiply(0.1 / length);
 
 
-        if (!this.world.getBlockState(new BlockPos(this.x, this.y - 0.1, this.z)).getBlock().canMobSpawnInside()) {
+        if (!this.world.getBlockState(new BlockPos((int) this.x, (int) (this.y - 0.1), (int) this.z)).getBlock().canMobSpawnInside()) {
             velocityX = (0.9) * velocityX + (0.1) * targetVector.x;
             velocityY = 0.05;
             velocityZ = (0.9) * velocityZ + (0.1) * targetVector.z;
@@ -169,7 +176,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
             velocityY = (0.9) * velocityY + (0.1) * targetVector.y;
             velocityZ = (0.9) * velocityZ + (0.1) * targetVector.z;
         }
-        if (!new BlockPos(x, y, z).equals(this.getTargetPosition())) {
+        if (!new BlockPos((int) x, (int) y, (int) z).equals(this.getTargetPosition())) {
             this.move(velocityX, velocityY, velocityZ);
         }
     }
@@ -179,7 +186,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
             // Behaviour
             double groundLevel = 0;
             for (int i = 0; i < 20; i++) {
-                BlockState checkedBlock = this.world.getBlockState(new BlockPos(this.x, this.y - i, this.z));
+                BlockState checkedBlock = this.world.getBlockState(new BlockPos((int) this.x, (int) (this.y - i), (int) this.z));
                 if (!checkedBlock.getBlock().canMobSpawnInside()) {
                     groundLevel = this.y - i;
                 }
@@ -190,7 +197,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
             this.yTarget = Math.min(Math.max(this.y + random.nextGaussian() * 2, groundLevel), groundLevel + maxHeight);
             this.zTarget = this.z + random.nextGaussian() * 10;
 
-            BlockPos targetPos = new BlockPos(this.xTarget, this.yTarget, this.zTarget);
+            BlockPos targetPos = new BlockPos((int) this.xTarget, (int) this.yTarget, (int) this.zTarget);
             if (this.world.getBlockState(targetPos).isFullCube(world, targetPos)
                     && this.world.getBlockState(targetPos).isSolidBlock(world, targetPos)) {
                 this.yTarget += 1;
@@ -208,7 +215,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
             this.y = this.lightTarget.getY() + 1;
             this.z = this.lightTarget.getZ();
 
-            if (this.world.getLightLevel(LightType.BLOCK, new BlockPos(x, y, z)) > 0 && !this.world.isDay()) {
+            if (this.world.getLightLevel(LightType.BLOCK, new BlockPos((int) x, (int) y, (int) z)) > 0 && !this.world.isDay()) {
                 this.lightTarget = getMostLitBlockAround();
             } else {
                 this.lightTarget = null;
@@ -219,7 +226,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
     }
 
     public BlockPos getTargetPosition() {
-        return new BlockPos(this.xTarget, this.yTarget + 0.5, this.zTarget);
+        return new BlockPos((int) this.xTarget, (int) (this.yTarget + 0.5), (int) this.zTarget);
     }
 
     private BlockPos getMostLitBlockAround() {
@@ -229,7 +236,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
-                    BlockPos bp = new BlockPos(this.x + x, this.y + y, this.z + z);
+                    BlockPos bp = new BlockPos((int) (this.x + x), (int) (this.y + y), (int) (this.z + z));
                     randBlocks.put(bp, this.world.getLightLevel(LightType.BLOCK, bp));
                 }
             }
@@ -237,7 +244,7 @@ public class FireflyParticle extends SpriteBillboardParticle {
 
         // get other random blocks to find a different light source
         for (int i = 0; i < 15; i++) {
-            BlockPos randBP = new BlockPos(this.x + random.nextGaussian() * 10, this.y + random.nextGaussian() * 10, this.z + random.nextGaussian() * 10);
+            BlockPos randBP = new BlockPos((int) (this.x + random.nextGaussian() * 10), (int) (this.y + random.nextGaussian() * 10), (int) (this.z + random.nextGaussian() * 10));
             randBlocks.put(randBP, this.world.getLightLevel(LightType.BLOCK, randBP));
         }
 

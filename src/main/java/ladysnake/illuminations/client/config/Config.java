@@ -4,9 +4,7 @@ import com.google.common.base.CaseFormat;
 import ladysnake.illuminations.client.data.BiomeSettings;
 import ladysnake.illuminations.client.enums.*;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

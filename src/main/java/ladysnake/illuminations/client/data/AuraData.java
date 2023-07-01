@@ -9,9 +9,9 @@ public record AuraData(DefaultParticleType particle, Supplier<AuraSettings> aura
 
     public boolean shouldAddParticle(Random random, int age) {
 
-            AuraSettings settings = auraSettingsSupplier().get();
-            if (settings.spawnRate() == 0) return false;
-            float rand = random.nextFloat();
-            return rand <= settings.spawnRate() && (age % settings.delay() == 0);
+        AuraSettings settings = auraSettingsSupplier().get();
+        if (settings.spawnRate() == 0) return false;
+        float rand = random.nextFloat();
+        return rand <= settings.spawnRate() && (age % settings.delay() == 0);
     }
 }

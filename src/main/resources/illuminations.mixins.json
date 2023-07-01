@@ -12,7 +12,6 @@
     "PlayerEntityMixin",
     "RenderLayerAccessor",
     "SkullBlockMixin",
-    "TitleScreenMixin",
     "jeb.FeatureRendererMixin",
     "jeb.LivingEntityRendererMixin"
   ],

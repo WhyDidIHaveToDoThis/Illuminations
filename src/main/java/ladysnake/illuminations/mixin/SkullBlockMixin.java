@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Random;
 
 @Mixin(SkullBlock.class)
 public abstract class SkullBlockMixin extends BlockMixin {

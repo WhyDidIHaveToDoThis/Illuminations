@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import ladysnake.illuminations.client.data.AuraSettings;
 import ladysnake.illuminations.client.data.BiomeSettings;
 import ladysnake.illuminations.client.enums.*;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 

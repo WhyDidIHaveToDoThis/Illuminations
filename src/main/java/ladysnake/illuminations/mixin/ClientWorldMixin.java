@@ -7,14 +7,15 @@ import ladysnake.illuminations.client.data.IlluminationData;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.tag.BlockTags;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -30,17 +31,17 @@ import java.util.function.Supplier;
 
 @Mixin(ClientWorld.class)
 public abstract class ClientWorldMixin extends World {
-    protected ClientWorldMixin(MutableWorldProperties properties, RegistryKey<World> registryRef, RegistryEntry<DimensionType> dimension, Supplier<Profiler> profiler, boolean isClient, boolean debugWorld, long seed, int maxChainedNeighborUpdates) {
-        super(properties, registryRef, dimension, profiler, isClient, debugWorld, seed, maxChainedNeighborUpdates);
+    protected ClientWorldMixin(MutableWorldProperties properties, DynamicRegistryManager registryManager, RegistryKey<World> registryRef, RegistryEntry<DimensionType> dimension, Supplier<Profiler> profiler, boolean isClient, boolean debugWorld, long seed, int maxChainedNeighborUpdates) {
+        super(properties, registryRef, registryManager, dimension, profiler, isClient, debugWorld, seed, maxChainedNeighborUpdates);
     }
 
     @Inject(method = "randomBlockDisplayTick", slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/world/biome/Biome;getParticleConfig()Ljava/util/Optional;")),
             at = @At(value = "INVOKE", target = "Ljava/util/Optional;ifPresent(Ljava/util/function/Consumer;)V", ordinal = 0, shift = At.Shift.AFTER))
     private void randomBlockDisplayTick(int centerX, int centerY, int centerZ, int radius, Random random, @Coerce Object blockParticle, BlockPos.Mutable blockPos, CallbackInfo ci) {
-        BlockPos.Mutable pos = blockPos.add(this.random.nextGaussian() * 50, this.random.nextGaussian() * 25, this.random.nextGaussian() * 50).mutableCopy();
+        BlockPos.Mutable pos = blockPos.add((int) (this.random.nextGaussian() * 50), (int) (this.random.nextGaussian() * 25), (int) (this.random.nextGaussian() * 50)).mutableCopy();
 
         RegistryEntry<Biome> b = this.getBiome(pos);
-        Identifier biome = this.getRegistryManager().get(Registry.BIOME_KEY).getId(b.value());
+        Identifier biome = this.getRegistryManager().get(RegistryKeys.BIOME).getId(b.value());
         spawnParticles(pos, Illuminations.ILLUMINATIONS_BIOME_CATEGORIES.get(biome));
 
         // Other miscellaneous biome settings
