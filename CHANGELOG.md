@@ -1,5 +1,39 @@
 # Illuminations - Changelog:
 
+### Illuminations 1.10.11 - 1.19.2
+- Disabled the Effective-Illuminations merge toast if Effective is installed
+
+### Illuminations 1.10.10 - 1.19.2
+- Added a toast disclaimer indicating the incoming merge of Illuminations into Effective
+
+### Illuminations 1.10.9 - 1.19
+- Fixed fireflies not disappearing on daytime
+
+### Illuminations 1.10.8 - 1.19
+- Increased range at which Will o' Wisps spawn from soul lanterns by 50 horizontally and 25 vertically
+- Will o' Wisps now only spawn from soul lanterns if they have a soul fire base block below them like soul sand or soul soil
+- To compensate for that change, Will o' Wisps will now spawn twice as frequently from soul lanterns meeting the requirements
+
+### Illuminations 1.10.7 - 1.19
+- Fixed a crash that would sometimes happen when playing on servers
+
+### Illuminations 1.10.6 - 1.19
+- Spooky eyes can now spawn in every dimension
+- Disabled Mod menu integration for the config, plankton and glowworms for the time being
+- Completely revamped and revisited the default config for firefly biome spawn rates and colors
+- Fixed fireflies not spawning on Vanilla servers
+
+### Illuminations 1.10.5 - 1.19
+- Update to Minecraft 1.19
+
+### Illuminations 1.10.4 - 1.18.2
+- Fixed log spam
+
+### Illuminations 1.10.3 - 1.18.2
+- Update to Minecraft 1.18.2
+- Removed the auto-updater, auto-update greeting screen and config options relating to it
+- Added a config option to disable cosmetics
+
 ### Illuminations 1.10.2 - 1.18
 - Update to Minecraft 1.18
 
@@ -90,7 +124,7 @@ All of this update was entirely made by a community member: Boerdereinar, so big
 
 ### Illuminations 1.4.9 - 1.16.5
 - Added the Lesbian, Bi, Ace, NB and Intersex pride free overheads thanks to JothGC
-Get them for free at https://illuminations.uuid.gg/pride
+Get them for free at https://doctor4t.uuid.gg/pride
 
 ### Illuminations 1.4.8 - 1.16.5
 - Fixed an issue that caused the prismatic color to not be retrieved from the dashboard
@@ -192,7 +226,7 @@ On an unrelated but still important note: the way donator rewards work has been 
 ### Illuminations 1.1 - 1.16.3 and 1.16.1
 - Introduced bugballs: get them from a full composter (up to four) and throw them around to spawn fireflies! (only available if Illuminations is installed on both server and clients)
 - Introduced overheads, a new type of cosmetic that can be equipped independently of auras and will float over your head
-    - Added the Pride and Trans Pride overheads, obtainable for free at https://illuminations.uuid.gg/pride
+    - Added the Pride and Trans Pride overheads, obtainable for free at https://doctor4t.uuid.gg/pride
 - Fixed an issue where server players using Illuminations would crash upon a player with an aura dying
 - Fixed an issue where players with an aura would crash upon dying in third person modes
 - Updated to Minecraft 1.16.3
@@ -208,7 +242,7 @@ On an unrelated but still important note: the way donator rewards work has been 
 - Added an offline mode so the mod doesn't crash when unable to contact the Illuminations server
 
 ### Illuminations 1.0.2 - 1.16.1
-- Introduced prismatic auras, auras that you can change the color of on the [Illuminations dashboard](https://illuminations.uuid.gg/)
+- Introduced prismatic auras, auras that you can change the color of on the [Illuminations dashboard](https://doctor4t.uuid.gg/)
   - Made the twilight aura prismatic
 
 ### Illuminations 1.0.1 - 1.16.1

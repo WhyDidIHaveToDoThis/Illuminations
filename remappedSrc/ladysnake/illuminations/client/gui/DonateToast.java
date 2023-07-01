@@ -9,16 +9,18 @@ import net.minecraft.client.toast.Toast;
 import net.minecraft.client.toast.ToastManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Style;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
-public class UpdateToast implements Toast {
-    private static final Identifier TEXTURE = new Identifier(Illuminations.MODID, "textures/gui/update_toast.png");
+public class DonateToast implements Toast {
+    private static final Identifier TEXTURE = new Identifier(Illuminations.MODID, "textures/gui/donate_toast.png");
 
     public static void add() {
         ToastManager toastManager = MinecraftClient.getInstance().getToastManager();
-        UpdateToast toast = toastManager.getToast(UpdateToast.class, Toast.TYPE);
+        DonateToast toast = toastManager.getToast(DonateToast.class, Toast.TYPE);
         if (toast == null) {
-            toastManager.add(new UpdateToast());
+            toastManager.add(new DonateToast());
         }
     }
 
@@ -28,9 +30,9 @@ public class UpdateToast implements Toast {
         RenderSystem.setShaderTexture(0, TEXTURE);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         manager.drawTexture(matrices, 0, 0, 0, 0, getWidth(), getHeight());
-        manager.getClient().textRenderer.draw(matrices, new LiteralText("Illuminations update available!"), 34, 7, -256);
-        manager.getClient().textRenderer.draw(matrices, new LiteralText("Illuminations automatically downloaded it"), 34, 18, -1);
-        manager.getClient().textRenderer.draw(matrices, new LiteralText("Restart your game to finish installing"), 34, 29, -1);
+        manager.getClient().textRenderer.draw(matrices, new LiteralText("Wish to support Illuminations?"), 34, 7, -256);
+        manager.getClient().textRenderer.draw(matrices, new LiteralText("Get cool cosmetics for only 5€!"), 34, 18, -1);
+        manager.getClient().textRenderer.draw(matrices, new LiteralText("More info: doctor4t.uuid.gg/donators").setStyle(Style.EMPTY.withColor(Formatting.GREEN)), 34, 29, -1);
         return MinecraftClient.getInstance().currentScreen instanceof TitleScreen ? Visibility.SHOW : Visibility.HIDE;
     }
 

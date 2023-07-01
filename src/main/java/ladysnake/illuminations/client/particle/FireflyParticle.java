@@ -2,7 +2,6 @@ package ladysnake.illuminations.client.particle;
 
 import ladysnake.illuminations.client.Illuminations;
 import ladysnake.illuminations.client.config.Config;
-import ladysnake.illuminations.client.enums.BiomeCategory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
@@ -14,6 +13,8 @@ import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.LightType;
 import net.minecraft.world.biome.Biome;
 
@@ -42,17 +43,16 @@ public class FireflyParticle extends SpriteBillboardParticle {
         this.maxHeight = 4;
         this.collidesWithWorld = true;
         this.setSpriteForAge(spriteProvider);
-        this.colorAlpha = 0f;
+        this.alpha = 0f;
 
         Color c;
         if (Config.getFireflyRainbow()) {
             c = Color.getHSBColor(random.nextFloat(), 1f, 1f);
         } else {
             // Get color for current biome
-            Biome b = world.getBiome(new BlockPos(x, y, z));
-            Identifier biome = world.getRegistryManager().get(Registry.BIOME_KEY).getId(b);
-            BiomeCategory biomeCategory = BiomeCategory.find(biome, b.getCategory());
-            int rgb = Config.getBiomeSettings(biomeCategory).fireflyColor();
+            RegistryEntry<Biome> b = world.getBiome(new BlockPos(x, y, z));
+            Identifier biome = world.getRegistryManager().get(Registry.BIOME_KEY).getId(b.value());
+            int rgb = Config.getBiomeSettings(biome).fireflyColor();
             float[] hsb = Color.RGBtoHSB(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, null);
             // Shift hue by random ±30 deg angle
             hsb[0] += (random.nextFloat() - 0.5f) * 30 / 360f;
@@ -60,18 +60,18 @@ public class FireflyParticle extends SpriteBillboardParticle {
             c = Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
         }
 
-        this.colorRed = c.getRed() / 255f;
-        this.colorGreen = c.getGreen() / 255f;
-        this.colorBlue = c.getBlue() / 255f;
+        this.red = c.getRed() / 255f;
+        this.green = c.getGreen() / 255f;
+        this.blue = c.getBlue() / 255f;
 
         /*if (LocalDate.now().getMonth() == Month.OCTOBER) {
-            this.colorRed = 1f;
-            this.colorGreen = 0.25f + new Random().nextFloat() * 0.25f;
+            this.red = 1f;
+            this.green = 0.25f + new Random().nextFloat() * 0.25f;
         } else {
-            this.colorRed = 0.5f + new Random().nextFloat() * 0.5f;
-            this.colorGreen = 1f;
+            this.red = 0.5f + new Random().nextFloat() * 0.5f;
+            this.green = 1f;
         }
-        this.colorBlue = 0f;*/
+        this.blue = 0f;*/
     }
 
     public ParticleTextureSheet getType() {
@@ -110,13 +110,13 @@ public class FireflyParticle extends SpriteBillboardParticle {
         float minV = this.getMinV();
         float maxV = this.getMaxV();
         int l = 15728880;
-        float a = Math.min(1f, Math.max(0f, this.colorAlpha));
+        float a = Math.min(1f, Math.max(0f, this.alpha));
 
         // colored layer
-        vertexConsumer.vertex(Vec3fs[0].getX(), Vec3fs[0].getY(), Vec3fs[0].getZ()).texture(maxU, minV + (maxV - minV) / 2.0F).color(this.colorRed, this.colorGreen, this.colorBlue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[1].getX(), Vec3fs[1].getY(), Vec3fs[1].getZ()).texture(maxU, minV).color(this.colorRed, this.colorGreen, this.colorBlue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[2].getX(), Vec3fs[2].getY(), Vec3fs[2].getZ()).texture(minU, minV).color(this.colorRed, this.colorGreen, this.colorBlue, a).light(l).next();
-        vertexConsumer.vertex(Vec3fs[3].getX(), Vec3fs[3].getY(), Vec3fs[3].getZ()).texture(minU, minV + (maxV - minV) / 2.0F).color(this.colorRed, this.colorGreen, this.colorBlue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[0].getX(), Vec3fs[0].getY(), Vec3fs[0].getZ()).texture(maxU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[1].getX(), Vec3fs[1].getY(), Vec3fs[1].getZ()).texture(maxU, minV).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[2].getX(), Vec3fs[2].getY(), Vec3fs[2].getZ()).texture(minU, minV).color(this.red, this.green, this.blue, a).light(l).next();
+        vertexConsumer.vertex(Vec3fs[3].getX(), Vec3fs[3].getY(), Vec3fs[3].getZ()).texture(minU, minV + (maxV - minV) / 2.0F).color(this.red, this.green, this.blue, a).light(l).next();
 
         // white center
         vertexConsumer.vertex(Vec3fs[0].getX(), Vec3fs[0].getY(), Vec3fs[0].getZ()).texture(maxU, maxV).color(1f, 1f, 1f, (a * Config.getFireflyWhiteAlpha()) / 100f).light(l).next();
@@ -133,19 +133,19 @@ public class FireflyParticle extends SpriteBillboardParticle {
         // fade and die on daytime or if old enough unless fireflies can spawn any time of day
         if ((!Config.doesFireflySpawnAlways() && !world.getDimension().hasFixedTime() && !Illuminations.isNightTime(world)) || this.age++ >= this.maxAge) {
             nextAlphaGoal = 0;
-            if (colorAlpha < 0f) {
+            if (alpha <= 0.01f) {
                 this.markDead();
             }
         }
 
         // blinking
-        if (colorAlpha > nextAlphaGoal - BLINK_STEP && colorAlpha < nextAlphaGoal + BLINK_STEP) {
+        if (alpha > nextAlphaGoal - BLINK_STEP && alpha < nextAlphaGoal + BLINK_STEP) {
             nextAlphaGoal = random.nextFloat();
         } else {
-            if (nextAlphaGoal > colorAlpha) {
-                colorAlpha = Math.min(colorAlpha + BLINK_STEP, 1f);
-            } else if (nextAlphaGoal < colorAlpha) {
-                colorAlpha = Math.max(colorAlpha - BLINK_STEP, 0f);
+            if (nextAlphaGoal > alpha) {
+                alpha = Math.min(alpha + BLINK_STEP, 1f);
+            } else if (nextAlphaGoal < alpha) {
+                alpha = Math.max(alpha - BLINK_STEP, 0f);
             }
         }
 

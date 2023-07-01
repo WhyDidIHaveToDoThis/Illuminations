@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '0.10-SNAPSHOT'
+    id 'fabric-loom' version '0.12-SNAPSHOT'
     id 'maven-publish'
     id 'com.matthewprenger.cursegradle' version '1.4.0'
     id 'org.ajoberstar.grgit' version '3.1.1'
@@ -17,7 +17,7 @@ version = project.mod_version
 group = project.maven_group
 
 loom {
-    accessWidener = file("src/main/resources/illuminations.accesswidener")
+    accessWidenerPath = file("src/main/resources/illuminations.accesswidener")
 }
 
 //def apiModules = [
@@ -79,21 +79,6 @@ dependencies {
 
     // Sodium
     // modRuntime 'com.github.jellysquid3:sodium-fabric:mc1.16.1-0.1.0'
-
-    // cloth config
-    modApi("me.shedaniel.cloth:cloth-config-fabric:5.+") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
-    include "me.shedaniel.cloth:cloth-config-fabric:5.0.34"
-
-    // mod menu
-    modCompileOnly("com.terraformersmc:modmenu:2.0.5") {
-        exclude module: "fabric-api"
-    }
-
-    modRuntime("com.terraformersmc:modmenu:2.0.5") {
-        exclude module: "fabric-api"
-    }
 
     // canvas renderer
 //    modImplementation "grondag:canvas-mc117-1.17:1.0.2033"
@@ -174,20 +159,6 @@ task checkGitStatus() {
     }
 }
 
-githubRelease {
-    repo "Illuminations"
-    token "${getProjectProperty('github_releases_token')}"
-    // default owner: last component of maven group
-    // default repo: name of the project
-    tagName = project.version
-    targetCommitish = { grgit.branch.current().name }
-    body = { project.getChangelogText() }
-
-    FilenameFilter filter = { dir, filename -> filename.contains(project.version) && !filename.contains('-dev.jar') }
-    releaseAssets = { jar.destinationDirectory.asFile.get().listFiles filter }
-}
-tasks.githubRelease.dependsOn(checkGitStatus)
-
 curseforge {
 
     if (project.getProjectProperty('curse_key') != null) {
@@ -260,7 +231,7 @@ curseforge {
 
 tasks.curseforge.dependsOn(checkGitStatus)
 
-task release(dependsOn: [tasks.githubRelease, tasks.curseforge]) {
+task release(dependsOn: [tasks.curseforge]) {
     group = 'publishing'
     description = 'Releases a new version to Github and Curseforge'
 }

@@ -11,7 +11,6 @@ import ladysnake.illuminations.client.data.AuraData;
 import ladysnake.illuminations.client.data.IlluminationData;
 import ladysnake.illuminations.client.data.OverheadData;
 import ladysnake.illuminations.client.data.PlayerCosmeticData;
-import ladysnake.illuminations.client.enums.BiomeCategory;
 import ladysnake.illuminations.client.enums.HalloweenFeatures;
 import ladysnake.illuminations.client.particle.*;
 import ladysnake.illuminations.client.particle.aura.*;
@@ -21,13 +20,12 @@ import ladysnake.illuminations.client.render.entity.model.hat.*;
 import ladysnake.illuminations.client.render.entity.model.pet.LanternModel;
 import ladysnake.illuminations.client.render.entity.model.pet.PrideHeartModel;
 import ladysnake.illuminations.client.render.entity.model.pet.WillOWispModel;
-import ladysnake.illuminations.updater.IlluminationsUpdater;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendereregistry.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
@@ -83,18 +81,18 @@ public class Illuminations implements ClientModInitializer {
                 ? (block == Blocks.AIR || block == Blocks.VOID_AIR)
                 : block == Blocks.AIR
                 && (Config.doesFireflySpawnAlways() || Illuminations.isNightTime(world))
-                && (Config.doesFireflySpawnUnderground() || world.isSkyVisible(blockPos));
+                && (Config.doesFireflySpawnUnderground() || world.getBlockState(blockPos).isOf(Blocks.AIR));
     };
     public static final BiPredicate<World, BlockPos> GLOWWORM_LOCATION_PREDICATE = (world, blockPos) -> world.getBlockState(blockPos).getBlock() == Blocks.CAVE_AIR;
     public static final BiPredicate<World, BlockPos> PLANKTON_LOCATION_PREDICATE = (world, blockPos) -> world.getBlockState(blockPos).getFluidState().isIn(FluidTags.WATER) && world.getLightLevel(blockPos) < 2;
-    public static final BiPredicate<World, BlockPos> EYES_LOCATION_PREDICATE = (world, blockPos) -> ((Config.getHalloweenFeatures() == HalloweenFeatures.ENABLE && LocalDate.now().getMonth() == Month.OCTOBER) || Config.getHalloweenFeatures() == HalloweenFeatures.ALWAYS) && (world.getBlockState(blockPos).getBlock() == Blocks.AIR || world.getBlockState(blockPos).getBlock() == Blocks.CAVE_AIR) && world.getLightLevel(blockPos) <= 0 && world.getClosestPlayer(blockPos.getX(), blockPos.getY(), blockPos.getZ(), EYES_VANISHING_DISTANCE, false) == null && world.getRegistryKey().equals(World.OVERWORLD);
+    public static final BiPredicate<World, BlockPos> EYES_LOCATION_PREDICATE = (world, blockPos) -> ((Config.getHalloweenFeatures() == HalloweenFeatures.ENABLE && LocalDate.now().getMonth() == Month.OCTOBER) || Config.getHalloweenFeatures() == HalloweenFeatures.ALWAYS) && (world.getBlockState(blockPos).getBlock() == Blocks.AIR || world.getBlockState(blockPos).getBlock() == Blocks.CAVE_AIR) && world.getLightLevel(blockPos) <= 0 && world.getClosestPlayer(blockPos.getX(), blockPos.getY(), blockPos.getZ(), EYES_VANISHING_DISTANCE, false) == null;
     public static final BiPredicate<World, BlockPos> WISP_LOCATION_PREDICATE = (world, blockPos) -> world.getBlockState(blockPos).isIn(BlockTags.SOUL_FIRE_BASE_BLOCKS);
     // register overhead models
     public static final EntityModelLayer CROWN = new EntityModelLayer(new Identifier(MODID, "crown"), "main");
     static final Type COSMETIC_SELECT_TYPE = new TypeToken<Map<UUID, PlayerCosmeticData>>() {
     }.getType();
     // illuminations cosmetics
-    private static final String COSMETICS_URL = "https://illuminations.uuid.gg/data";
+    private static final String COSMETICS_URL = "https://doctor4t.uuid.gg/illuminations-data";
     public static ImmutableMap<String, AuraData> AURAS_DATA;
     public static ImmutableMap<String, DefaultParticleType> PETS_DATA;
     public static ImmutableMap<String, OverheadData> OVERHEADS_DATA;
@@ -145,8 +143,9 @@ public class Illuminations implements ClientModInitializer {
     public static DefaultParticleType SOUL_LANTERN_PET;
     public static DefaultParticleType CRYING_LANTERN_PET;
     public static DefaultParticleType SOOTHING_LANTERN_PET;
+    public static DefaultParticleType GENDERFLUID_PRIDE_PET;
     // spawn biome categories and biomes
-    public static ImmutableMap<BiomeCategory, ImmutableSet<IlluminationData>> ILLUMINATIONS_BIOME_CATEGORIES;
+    public static ImmutableMap<Identifier, ImmutableSet<IlluminationData>> ILLUMINATIONS_BIOME_CATEGORIES;
     public static ImmutableMap<Identifier, ImmutableSet<IlluminationData>> ILLUMINATIONS_BIOMES;
     private static Map<UUID, PlayerCosmeticData> PLAYER_COSMETICS = Collections.emptyMap();
 
@@ -201,11 +200,6 @@ public class Illuminations implements ClientModInitializer {
 
         // get illuminations player cosmetics
         loadPlayerCosmetics();
-
-        // auto-updater
-        if (!FabricLoader.getInstance().isDevelopmentEnvironment() && Config.isAutoUpdate()) {
-            IlluminationsUpdater.init();
-        }
 
         // load jeb shader
         if (FabricLoader.getInstance().isModLoaded("satin")) {
@@ -305,7 +299,8 @@ public class Illuminations implements ClientModInitializer {
         ParticleFactoryRegistry.getInstance().register(Illuminations.PAN_PRIDE_PET, fabricSpriteProvider -> new PrideHeartParticle.DefaultFactory(fabricSpriteProvider, new Identifier(Illuminations.MODID, "textures/entity/pan_pride_heart.png"), 1.0f, 1.0f, 1.0f));
         AGENDER_PRIDE_PET = Registry.register(Registry.PARTICLE_TYPE, "illuminations:agender_pride_pet", FabricParticleTypes.simple(true));
         ParticleFactoryRegistry.getInstance().register(Illuminations.AGENDER_PRIDE_PET, fabricSpriteProvider -> new PrideHeartParticle.DefaultFactory(fabricSpriteProvider, new Identifier(Illuminations.MODID, "textures/entity/agender_pride_heart.png"), 1.0f, 1.0f, 1.0f));
-
+        GENDERFLUID_PRIDE_PET = Registry.register(Registry.PARTICLE_TYPE, "illuminations:genderfluid_pride_pet", FabricParticleTypes.simple(true));
+        ParticleFactoryRegistry.getInstance().register(Illuminations.GENDERFLUID_PRIDE_PET, fabricSpriteProvider -> new PrideHeartParticle.DefaultFactory(fabricSpriteProvider, new Identifier(Illuminations.MODID, "textures/entity/genderfluid_pride_heart.png"), 1.0f, 1.0f, 1.0f));
         /*
                 WILL O' WISP PETS
          */
@@ -349,7 +344,7 @@ public class Illuminations implements ClientModInitializer {
         /*
                 ADDING FIRFLY, GLOWWORM AND PLANKTON BIOMES SPAWN RATES
          */
-        ImmutableMap.Builder<BiomeCategory, ImmutableSet<IlluminationData>> biomeBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<Identifier, ImmutableSet<IlluminationData>> biomeBuilder = ImmutableMap.builder();
         Config.getBiomeSettings().forEach((biome, settings) -> {
             ImmutableSet.Builder<IlluminationData> illuminationDataBuilder = ImmutableSet.builder();
 
@@ -419,6 +414,7 @@ public class Illuminations implements ClientModInitializer {
                 .put("aro_pride", ARO_PRIDE_PET)
                 .put("pan_pride", PAN_PRIDE_PET)
                 .put("agender_pride", AGENDER_PRIDE_PET)
+                .put("genderfluid_pride", GENDERFLUID_PRIDE_PET)
                 .put("jacko", JACKO_PET)
                 .put("will_o_wisp", WILL_O_WISP_PET)
                 .put("golden_will", GOLDEN_WILL_PET)
@@ -440,7 +436,6 @@ public class Illuminations implements ClientModInitializer {
             return new PlayerCosmeticData(jsonObject.get("aura")
                     , jsonObject.get("color")
                     , jsonObject.get("overhead")
-                    , jsonObject.get("drip")
                     , jsonObject.get("pet"));
         }
     }

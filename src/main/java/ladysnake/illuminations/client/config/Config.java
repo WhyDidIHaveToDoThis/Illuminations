@@ -4,6 +4,9 @@ import com.google.common.base.CaseFormat;
 import ladysnake.illuminations.client.data.BiomeSettings;
 import ladysnake.illuminations.client.enums.*;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.tag.TagKey;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -36,11 +39,10 @@ public class Config {
     private static int fireflyWhiteAlpha;
     private static boolean fireflyRainbow;
     private static boolean viewAurasFP;
-    private static boolean autoUpdate;
     private static boolean debugMode;
-    private static boolean displayGreetingScreen;
+    private static boolean displayCosmetics;
     private static boolean displayDonationToast;
-    private static HashMap<BiomeCategory, BiomeSettings> biomeSettings;
+    private static HashMap<Identifier, BiomeSettings> biomeSettings;
     // private static HashMap<String, AuraSettings> auraSettings;
 
     public static void load() {
@@ -62,9 +64,8 @@ public class Config {
             setFireflySpawnAlways(DefaultConfig.FIREFLY_SPAWN_ALWAYS);
             setFireflySpawnUnderground(DefaultConfig.FIREFLY_SPAWN_UNDERGROUND);
             setFireflyWhiteAlpha(DefaultConfig.FIREFLY_WHITE_ALPHA);
-            setAutoUpdate(DefaultConfig.AUTO_UPDATE);
+            setDisplayCosmetics(DefaultConfig.DISPLAY_COSMETICS);
             setViewAurasFP(DefaultConfig.VIEW_AURAS_FP);
-            setDisplayGreetingScreen(DefaultConfig.DISPLAY_GREETING_SCREEN);
             setDisplayDonationToast(DefaultConfig.DISPLAY_DONATION_TOAST);
 
             biomeSettings = new HashMap<>();
@@ -88,15 +89,14 @@ public class Config {
         parseProperty("firefly-spawn-underground", Config::setFireflySpawnUnderground, DefaultConfig.FIREFLY_SPAWN_UNDERGROUND);
         parseProperty("firefly-white-alpha", Config::setFireflyWhiteAlpha, DefaultConfig.FIREFLY_WHITE_ALPHA);
         parseProperty("firefly-rainbow", Config::setFireflyRainbow, DefaultConfig.FIREFLY_RAINBOW);
-        parseProperty("auto-update", Config::setAutoUpdate, DefaultConfig.AUTO_UPDATE);
+        parseProperty("display-cosmetics", Config::setDisplayCosmetics, DefaultConfig.DISPLAY_COSMETICS);
         parseProperty("debug-mode", Config::setDebugMode, DefaultConfig.DEBUG_MODE);
         parseProperty("view-auras-fp", Config::setViewAurasFP, DefaultConfig.VIEW_AURAS_FP);
-        parseProperty("display-greeting-screen", Config::setDisplayGreetingScreen, DefaultConfig.DISPLAY_GREETING_SCREEN);
         parseProperty("display-donation-toast", Config::setDisplayDonationToast, DefaultConfig.DISPLAY_DONATION_TOAST);
 
         biomeSettings = new HashMap<>();
         DefaultConfig.BIOME_SETTINGS.forEach((biome, defaultValue) ->
-                parseProperty(biome.name(), x -> Config.setBiomeSettings(biome, x), defaultValue));
+                parseProperty(biome.toString(), x -> Config.setBiomeSettings(biome, x), defaultValue));
 
         /*
         auraSettings = new HashMap<>();
@@ -254,13 +254,13 @@ public class Config {
         config.setProperty("view-auras-fp", Boolean.toString(value));
     }
 
-    public static boolean isAutoUpdate() {
-        return autoUpdate;
+    public static boolean shouldDisplayCosmetics() {
+        return displayCosmetics;
     }
 
-    public static void setAutoUpdate(boolean value) {
-        autoUpdate = value;
-        config.setProperty("auto-update", Boolean.toString(value));
+    public static void setDisplayCosmetics(boolean value) {
+        displayCosmetics = value;
+        config.setProperty("display-cosmetics", Boolean.toString(value));
     }
 
     public static boolean isDebugMode() {
@@ -272,16 +272,7 @@ public class Config {
         config.setProperty("debug-mode", Boolean.toString(value));
     }
 
-    public static boolean isDisplayGreetingScreen() {
-        return displayGreetingScreen;
-    }
-
-    public static void setDisplayGreetingScreen(boolean value) {
-        displayGreetingScreen = value;
-        config.setProperty("display-greeting-screen", Boolean.toString(value));
-    }
-
-    public static boolean isDisplayDonationToast() {
+    public static boolean shouldDisplayDonationToast() {
         return displayDonationToast;
     }
 
@@ -290,17 +281,17 @@ public class Config {
         config.setProperty("display-donation-toast", Boolean.toString(value));
     }
 
-    public static Map<BiomeCategory, BiomeSettings> getBiomeSettings() {
+    public static Map<Identifier, BiomeSettings> getBiomeSettings() {
         return biomeSettings;
     }
 
-    public static BiomeSettings getBiomeSettings(BiomeCategory biome) {
+    public static BiomeSettings getBiomeSettings(Identifier biome) {
         return biomeSettings.get(biome);
     }
 
-    public static void setBiomeSettings(BiomeCategory biome, BiomeSettings settings) {
+    public static void setBiomeSettings(Identifier biome, BiomeSettings settings) {
         biomeSettings.put(biome, settings);
-        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.name());
+        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.toString());
         config.setProperty(name + "-firefly-spawn-rate", settings.fireflySpawnRate().name());
         config.setProperty(name + "-firefly-color", Integer.toString(settings.fireflyColor(), 16));
         if (settings.glowwormSpawnRate() != null)
@@ -309,31 +300,31 @@ public class Config {
             config.setProperty(name + "-plankton-spawn-rate", settings.planktonSpawnRate().name());
     }
 
-    public static void setFireflySettings(BiomeCategory biome, FireflySpawnRate value) {
+    public static void setFireflySettings(Identifier biome, FireflySpawnRate value) {
         BiomeSettings settings = biomeSettings.get(biome);
         biomeSettings.put(biome, settings.withFireflySpawnRate(value));
-        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.name());
+        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.toString());
         config.setProperty(name + "-firefly-spawn-rate", value.name());
     }
 
-    public static void setFireflyColorSettings(BiomeCategory biome, int color) {
+    public static void setFireflyColorSettings(Identifier biome, int color) {
         BiomeSettings settings = biomeSettings.get(biome);
         biomeSettings.put(biome, settings.withFireflyColor(color));
-        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.name());
+        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.toString());
         config.setProperty(name + "-firefly-color", Integer.toString(color, 16));
     }
 
-    public static void setGlowwormSettings(BiomeCategory biome, GlowwormSpawnRate value) {
+    public static void setGlowwormSettings(Identifier biome, GlowwormSpawnRate value) {
         BiomeSettings settings = biomeSettings.get(biome);
         biomeSettings.put(biome, settings.withGlowwormSpawnRate(value));
-        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.name());
+        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.toString());
         config.setProperty(name + "-glowworm-spawn-rate", value.name());
     }
 
-    public static void setPlanktonSettings(BiomeCategory biome, PlanktonSpawnRate value) {
+    public static void setPlanktonSettings(Identifier biome, PlanktonSpawnRate value) {
         BiomeSettings settings = biomeSettings.get(biome);
         biomeSettings.put(biome, settings.withPlanktonSpawnRate(value));
-        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.name());
+        String name = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_HYPHEN, biome.toString());
         config.setProperty(name + "-plankton-spawn-rate", value.name());
     }
 
